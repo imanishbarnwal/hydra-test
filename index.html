@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Swap</title>
+  <style>
+    :root {
+      --bg: #0b0d12;
+      --card: #141821;
+      --field: #1b202b;
+      --border: #262c3a;
+      --text: #e8ebf2;
+      --muted: #8a93a6;
+      --accent: #6c7cff;
+      --accent-2: #8f5cff;
+      --good: #3ecf8e;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: radial-gradient(1200px 600px at 50% -10%, #1e2140 0%, var(--bg) 60%);
+      color: var(--text);
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    }
+    header {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 16px 24px;
+    }
+    .logo { font-weight: 700; font-size: 20px; letter-spacing: -0.02em; }
+    .logo span { color: var(--accent); }
+    nav { display: flex; gap: 20px; color: var(--muted); font-size: 14px; }
+    nav a { color: inherit; text-decoration: none; }
+    nav a.active { color: var(--text); }
+    .btn {
+      border: 0; cursor: pointer; font: inherit; font-weight: 600;
+      border-radius: 12px; padding: 10px 16px;
+    }
+    .btn-ghost { background: var(--field); color: var(--text); border: 1px solid var(--border); }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color: white; width: 100%; padding: 16px; font-size: 16px; border-radius: 16px;
+    }
+    .btn-primary:disabled { background: var(--field); color: var(--muted); cursor: not-allowed; }
+
+    main { display: flex; justify-content: center; padding: 48px 16px; }
+    .card {
+      width: 100%; max-width: 460px;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 24px; padding: 16px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.4);
+    }
+    .card-head { display: flex; justify-content: space-between; align-items: center; padding: 4px 6px 12px; }
+    .tabs { display: flex; gap: 4px; }
+    .tab { background: none; border: 0; color: var(--muted); font: inherit; font-weight: 600; padding: 6px 12px; border-radius: 10px; cursor: pointer; }
+    .tab.active { background: var(--field); color: var(--text); }
+    .icon-btn { background: none; border: 0; color: var(--muted); cursor: pointer; font-size: 18px; padding: 6px; border-radius: 8px; }
+    .icon-btn:hover { color: var(--text); background: var(--field); }
+
+    .field {
+      background: var(--field); border: 1px solid transparent;
+      border-radius: 18px; padding: 16px;
+    }
+    .field:focus-within { border-color: var(--border); }
+    .field-label { color: var(--muted); font-size: 13px; margin-bottom: 8px; }
+    .field-row { display: flex; align-items: center; gap: 12px; }
+    .amount {
+      flex: 1; min-width: 0; background: none; border: 0; outline: 0;
+      color: var(--text); font-size: 32px; font-weight: 500;
+    }
+    .amount::placeholder { color: #4a5266; }
+    .token-btn {
+      display: flex; align-items: center; gap: 8px;
+      background: var(--card); border: 1px solid var(--border); color: var(--text);
+      border-radius: 999px; padding: 6px 12px 6px 6px; font: inherit; font-weight: 600; cursor: pointer;
+      white-space: nowrap;
+    }
+    .token-btn.select { background: linear-gradient(135deg, var(--accent), var(--accent-2)); border: 0; padding: 8px 14px; }
+    .token-icon {
+      width: 26px; height: 26px; border-radius: 50%;
+      display: grid; place-items: center; font-size: 11px; font-weight: 700; color: #fff;
+    }
+    .field-foot { display: flex; justify-content: space-between; color: var(--muted); font-size: 13px; margin-top: 8px; }
+    .max { color: var(--accent); background: none; border: 0; font: inherit; font-weight: 600; cursor: pointer; padding: 0 0 0 6px; }
+
+    .flip-wrap { display: flex; justify-content: center; height: 4px; position: relative; z-index: 1; }
+    .flip {
+      position: absolute; top: -20px;
+      width: 40px; height: 40px; border-radius: 12px;
+      background: var(--field); border: 4px solid var(--card); color: var(--text);
+      cursor: pointer; font-size: 16px; transition: transform .2s;
+    }
+    .flip:hover { transform: rotate(180deg); }
+
+    .details { margin: 12px 4px; font-size: 13px; color: var(--muted); }
+    .details-row { display: flex; justify-content: space-between; padding: 4px 0; }
+    .details-row b { color: var(--text); font-weight: 500; }
+    .good { color: var(--good) !important; }
+    .card > .btn-primary { margin-top: 12px; }
+
+    /* modal */
+    .overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,.6);
+      display: none; align-items: center; justify-content: center; padding: 16px;
+    }
+    .overlay.open { display: flex; }
+    .modal {
+      width: 100%; max-width: 420px; max-height: 80vh; overflow: auto;
+      background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 16px;
+    }
+    .modal h3 { margin: 4px 0 12px; display: flex; justify-content: space-between; align-items: center; }
+    .search {
+      width: 100%; background: var(--field); border: 1px solid var(--border); color: var(--text);
+      border-radius: 12px; padding: 12px; font: inherit; outline: 0;
+    }
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+    .chip { display: flex; align-items: center; gap: 6px; border: 1px solid var(--border); border-radius: 999px; padding: 4px 10px 4px 4px; cursor: pointer; font-size: 14px; }
+    .chip .token-icon { width: 20px; height: 20px; font-size: 9px; }
+    .list-item { display: flex; align-items: center; gap: 12px; padding: 10px 8px; border-radius: 12px; cursor: pointer; }
+    .list-item:hover { background: var(--field); }
+    .list-item .token-icon { width: 34px; height: 34px; }
+    .list-item small { color: var(--muted); display: block; }
+    .list-item .bal { margin-left: auto; color: var(--muted); font-size: 14px; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">hydra<span>.</span></div>
+    <nav>
+      <a href="#" class="active">Swap</a>
+      <a href="#">Pool</a>
+      <a href="#">Explore</a>
+    </nav>
+    <button class="btn btn-ghost" id="connect">Connect wallet</button>
+  </header>
+
+  <main>
+    <div class="card">
+      <div class="card-head">
+        <div class="tabs">
+          <button class="tab active">Swap</button>
+          <button class="tab">Limit</button>
+          <button class="tab">Send</button>
+        </div>
+        <button class="icon-btn" title="Settings">⚙</button>
+      </div>
+
+      <div class="field">
+        <div class="field-label">You pay</div>
+        <div class="field-row">
+          <input class="amount" id="amountIn" inputmode="decimal" placeholder="0" />
+          <button class="token-btn" data-side="in" id="tokenIn"></button>
+        </div>
+        <div class="field-foot">
+          <span id="usdIn">$0.00</span>
+          <span>Balance: 2.4512 <button class="max" id="max">MAX</button></span>
+        </div>
+      </div>
+
+      <div class="flip-wrap"><button class="flip" id="flip" title="Switch">↓</button></div>
+
+      <div class="field" style="margin-top:4px">
+        <div class="field-label">You receive</div>
+        <div class="field-row">
+          <input class="amount" id="amountOut" placeholder="0" readonly />
+          <button class="token-btn" data-side="out" id="tokenOut"></button>
+        </div>
+        <div class="field-foot">
+          <span id="usdOut">$0.00</span>
+          <span>Balance: 1,204.10</span>
+        </div>
+      </div>
+
+      <div class="details" id="details" hidden>
+        <div class="details-row"><span>Rate</span><b id="rate"></b></div>
+        <div class="details-row"><span>Price impact</span><b class="good">&lt;0.01%</b></div>
+        <div class="details-row"><span>Max slippage</span><b>0.5%</b></div>
+        <div class="details-row"><span>Network fee</span><b>~$1.24</b></div>
+        <div class="details-row"><span>Route</span><b id="route"></b></div>
+      </div>
+
+      <button class="btn btn-primary" id="cta" disabled>Enter an amount</button>
+    </div>
+  </main>
+
+  <div class="overlay" id="overlay">
+    <div class="modal">
+      <h3>Select a token <button class="icon-btn" id="close">✕</button></h3>
+      <input class="search" placeholder="Search name or paste address" />
+      <div class="chips" id="chips"></div>
+      <div id="list"></div>
+    </div>
+  </div>
+
+  <script>
+    // UI-only mock data — no real pricing, wallet, or swap logic.
+    const TOKENS = [
+      { sym: 'ETH',  name: 'Ether',        usd: 3200,  color: '#627eea', bal: '2.4512' },
+      { sym: 'USDC', name: 'USD Coin',     usd: 1,     color: '#2775ca', bal: '1,204.10' },
+      { sym: 'USDT', name: 'Tether',       usd: 1,     color: '#26a17b', bal: '0' },
+      { sym: 'WBTC', name: 'Wrapped BTC',  usd: 68000, color: '#f09242', bal: '0.031' },
+      { sym: 'DAI',  name: 'Dai',          usd: 1,     color: '#f5ac37', bal: '50.00' },
+      { sym: 'ARB',  name: 'Arbitrum',     usd: 0.8,   color: '#28a0f0', bal: '0' },
+    ];
+    const state = { in: TOKENS[0], out: TOKENS[1], side: null };
+    const $ = id => document.getElementById(id);
+    const icon = t => `<span class="token-icon" style="background:${t.color}">${t.sym.slice(0,2)}</span>`;
+    const fmt = n => n.toLocaleString(undefined, { maximumFractionDigits: 6 });
+
+    function render() {
+      $('tokenIn').innerHTML  = `${icon(state.in)} ${state.in.sym} ▾`;
+      $('tokenOut').innerHTML = `${icon(state.out)} ${state.out.sym} ▾`;
+      const amt = parseFloat($('amountIn').value) || 0;
+      const rate = state.in.usd / state.out.usd;
+      $('amountOut').value = amt ? fmt(amt * rate) : '';
+      $('usdIn').textContent  = '$' + fmt(amt * state.in.usd);
+      $('usdOut').textContent = '$' + fmt(amt * state.in.usd);
+      $('details').hidden = !amt;
+      $('rate').textContent  = `1 ${state.in.sym} = ${fmt(rate)} ${state.out.sym}`;
+      $('route').textContent = `${state.in.sym} → ${state.out.sym}`;
+      const cta = $('cta');
+      cta.disabled = !amt;
+      cta.textContent = amt ? 'Swap' : 'Enter an amount';
+    }
+
+    $('amountIn').addEventListener('input', e => {
+      e.target.value = e.target.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');
+      render();
+    });
+    $('max').onclick = () => { $('amountIn').value = '2.4512'; render(); };
+    $('flip').onclick = () => { [state.in, state.out] = [state.out, state.in]; render(); };
+    $('cta').onclick = () => alert('UI only — no swap executed.');
+    $('connect').onclick = e => { e.target.textContent = '0x1a2b…9f3c'; };
+
+    // token picker
+    document.querySelectorAll('.token-btn').forEach(b => b.onclick = () => {
+      state.side = b.dataset.side;
+      $('overlay').classList.add('open');
+    });
+    $('close').onclick = () => $('overlay').classList.remove('open');
+    $('overlay').onclick = e => { if (e.target.id === 'overlay') $('overlay').classList.remove('open'); };
+    function pick(sym) {
+      const t = TOKENS.find(x => x.sym === sym);
+      const other = state.side === 'in' ? 'out' : 'in';
+      if (state[other] === t) state[other] = state[state.side];
+      state[state.side] = t;
+      $('overlay').classList.remove('open');
+      render();
+    }
+    $('chips').innerHTML = TOKENS.slice(0, 4).map(t => `<div class="chip" data-sym="${t.sym}">${icon(t)}${t.sym}</div>`).join('');
+    $('list').innerHTML = TOKENS.map(t => `
+      <div class="list-item" data-sym="${t.sym}">${icon(t)}
+        <div>${t.sym}<small>${t.name}</small></div><span class="bal">${t.bal}</span>
+      </div>`).join('');
+    document.querySelectorAll('[data-sym]').forEach(el => el.onclick = () => pick(el.dataset.sym));
+
+    render();
+  </script>
+</body>
+</html>
